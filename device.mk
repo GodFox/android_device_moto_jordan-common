@@ -45,7 +45,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
-DEVICE_PACKAGE_OVERLAYS += device/motorola/defy_common/overlay
+DEVICE_PACKAGE_OVERLAYS += device/motorola/jordan-common/overlay
 
 # Permissions
 PRODUCT_COPY_FILES += \
@@ -60,7 +60,7 @@ PRODUCT_COPY_FILES += \
 	frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
 	frameworks/base/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
 	frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
-	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml \
+#	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml \
 
 # ICS sound
 PRODUCT_PACKAGES += \
@@ -89,7 +89,7 @@ PRODUCT_PACKAGES += libOMX.TI.WMA.decode libOMX.TI.Video.Decoder libOMX.TI.Video
 #PRODUCT_PACKAGES += libskiahw libOMX.TI.JPEG.Encoder libOMX.TI.JPEG.decoder
 
 # Defy stuff
-PRODUCT_PACKAGES += libfnc DefyParts Usb 
+#PRODUCT_PACKAGES += libfnc DefyParts Usb 
 
 # Core stuff
 PRODUCT_PACKAGES += charge_only_mode mot_boot_mode lights.jordan sensors.jordan
@@ -102,29 +102,29 @@ PRODUCT_PACKAGES += VisualizationWallpapers librs_jni
 PRODUCT_PACKAGES += DroidSSHd dropbear dropbearkey sftp-server scp ssh rsync
 
 # CM9 apps
-PRODUCT_PACKAGES += FileManager Torch Apollo
+#PRODUCT_PACKAGES += FileManager Torch Apollo
 
 # Experimental TI OpenLink
 PRODUCT_PACKAGES += libnl_2 iw
 
 # copy all vendor (motorola) kernel modules to system/lib/modules
-PRODUCT_COPY_FILES += $(shell test -d vendor/motorola/defy_common/lib/modules &&  \
-	find vendor/motorola/defy_common/lib/modules -name '*.ko' \
+PRODUCT_COPY_FILES += $(shell test -d vendor/motorola/jordan-common/lib/modules &&  \
+	find vendor/motorola/jordan-common/lib/modules -name '*.ko' \
 	-printf '%p:system/lib/modules/%f ')
 
 # copy all others kernel modules under the "modules" directory to system/lib/modules
-PRODUCT_COPY_FILES += $(shell test -d device/motorola/defy_common/modules && \
-	find device/motorola/defy_common/modules -name '*.ko' \
+PRODUCT_COPY_FILES += $(shell test -d device/motorola/jordan-common/modules && \
+	find device/motorola/jordan-common/modules -name '*.ko' \
 	-printf '%p:system/lib/modules/%f ')
 
 # Prebuilt boot.img
-LOCAL_KERNEL := device/motorola/defy_common/kernel
+LOCAL_KERNEL := device/motorola/jordan-common/kernel
 PRODUCT_COPY_FILES += \
 	$(LOCAL_KERNEL):kernel
 
 # Blobs and bootmenu stuff
-$(call inherit-product, device/motorola/defy_common/jordan-blobs.mk)
-$(call inherit-product, device/motorola/defy_common/bootmenu/bootmenu.mk)
+$(call inherit-product, device/motorola/jordan-common/jordan-blobs.mk)
+$(call inherit-product, device/motorola/jordan-common/bootmenu/bootmenu.mk)
 
 $(call inherit-product, build/target/product/full_base.mk)
 
