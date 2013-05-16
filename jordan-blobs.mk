@@ -37,21 +37,29 @@ PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/usr/cpcap-key.kl:system/usr/keylayout/cpcap-key.kl \
 	$(DEVICE_PREBUILT)/usr/keychars/cpcap-key.kcm:system/usr/keychars/cpcap-key.kcm \
 
+# scripts
+PRODUCT_COPY_FILES += \
+	${DEVICE_PREBUILT}/bin/handle_bp_panic.sh:system/bin/handle_bp_panic.sh \
+
 PRODUCT_COPY_FILES += \
 	${device_path}/vold.fstab:system/etc/vold.fstab \
 	${device_path}/media_profiles.xml:system/etc/media_profiles.xml \
-	${device_path}/modules/modules.alias:system/lib/modules/modules.alias \
-	${device_path}/modules/modules.dep:system/lib/modules/modules.dep \
+	${device_path}/modules/sources/modules.alias:system/lib/modules/modules.alias \
+	${device_path}/modules/sources/modules.dep:system/lib/modules/modules.dep \
 	$(DEVICE_PREBUILT)/etc/init.d/01sysctl:system/etc/init.d/01sysctl \
 	$(DEVICE_PREBUILT)/etc/init.d/02baseband:system/etc/init.d/02baseband \
 	$(DEVICE_PREBUILT)/etc/init.d/03firstboot:system/etc/init.d/03firstboot \
 	$(DEVICE_PREBUILT)/etc/init.d/04filesystems:system/etc/init.d/04filesystems \
 	$(DEVICE_PREBUILT)/etc/init.d/05mountsd:system/etc/init.d/05mountsd \
+	$(DEVICE_PREBUILT)/etc/init.d/06ion:system/etc/init.d/06ion \
+	$(DEVICE_PREBUILT)/etc/init.d/07camera:system/etc/init.d/07camera \
 	$(DEVICE_PREBUILT)/etc/init.d/08backlight:system/etc/init.d/08backlight \
-	$(DEVICE_PREBUILT)/etc/init.d/10gpiofix:system/etc/init.d/10gpiofix \
+	$(DEVICE_PREBUILT)/etc/init.d/10wifi:system/etc/init.d/10wifi \
+	$(DEVICE_PREBUILT)/etc/init.d/20system_ro:system/etc/init.d/20system_ro \
 	$(DEVICE_PREBUILT)/etc/init.d/90multitouch:system/etc/init.d/90multitouch \
 	$(DEVICE_PREBUILT)/etc/profile:system/etc/profile \
 	$(DEVICE_PREBUILT)/etc/sysctl.conf:system/etc/sysctl.conf \
+	$(DEVICE_PREBUILT)/etc/inetd.conf:system/etc/inetd.conf \
 	$(DEVICE_PREBUILT)/etc/busybox.fstab:system/etc/fstab \
 	$(DEVICE_PREBUILT)/etc/wifi/dnsmasq.conf:system/etc/wifi/dnsmasq.conf \
 	$(DEVICE_PREBUILT)/etc/wifi/tiwlan.ini:system/etc/wifi/tiwlan.ini \
@@ -59,16 +67,12 @@ PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
 	$(DEVICE_PREBUILT)/etc/gpsconfig.xml:system/etc/gpsconfig.xml \
 	$(DEVICE_PREBUILT)/etc/location.cfg:system/etc/location.cfg \
-	device/motorola/jordan-common/vold.fstab:system/etc/vold.fstab \
-	device/motorola/jordan-common/media_profiles.xml:system/etc/media_profiles.xml \
-	device/motorola/jordan-common/modules/modules.alias:system/lib/modules/modules.alias \
-	device/motorola/jordan-common/modules/modules.dep:system/lib/modules/modules.dep \
 
 # New CM9 backup list system (addon.d)
 PRODUCT_COPY_FILES += \
 	${device_path}/releasetools/addon.d/60-baseband.sh:system/addon.d/60-baseband.sh \
-	${device_path}/releasetools/addon.d/70-gapps.sh:system/addon.d/70-gapps.sh \
 	${device_path}/releasetools/addon.d/70-multiboot.sh:system/addon.d/70-multiboot.sh \
+#	${device_path}/releasetools/addon.d/70-gapps.sh:system/addon.d/70-gapps.sh \
 
 # Backup kernel modules and bootmenu overclock config
 ifndef CM_RELEASE
@@ -76,5 +80,15 @@ PRODUCT_COPY_FILES += \
 	${device_path}/releasetools/addon.d/70-bootmenu.sh:system/addon.d/70-bootmenu.sh \
 
 endif
+
+# add some cm vendor files
+PRODUCT_COPY_FILES += \
+	$(DEVICE_PREBUILT)/etc/mkshrc:system/etc/mkshrc \
+	$(DEVICE_PREBUILT)/etc/init.local.rc:system/etc/init.local.rc \
+	$(DEVICE_PREBUILT)/etc/apns-conf.xml:system/etc/apns-conf.xml \
+	$(DEVICE_PREBUILT)/etc/spn-conf.xml:system/etc/spn-conf.xml \
+	$(DEVICE_PREBUILT)/bin/sysinit:system/bin/sysinit \
+	$(DEVICE_PREBUILT)/bin/compcache:system/bin/compcache \
+	$(DEVICE_PREBUILT)/bin/handle_compcache:system/bin/handle_compcache \
 
 #end of jordan-blobs.mk

@@ -32,16 +32,19 @@ TARGET_NO_RADIOIMAGE := true
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_PREINSTALL := true
 TARGET_BOOTLOADER_BOARD_NAME := jordan
+BOARD_HAS_LOCKED_BOOTLOADER  := true
 
 # Board properties
 TARGET_BOARD_PLATFORM := omap3
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_ARCH_VARIANT := armv7-a-neon
-TARGET_GLOBAL_CFLAGS += -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
-TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
+TARGET_ARCH_VARIANT_CPU := cortex-a8
+TARGET_ARCH_VARIANT_FPU := neon
+TARGET_GLOBAL_CFLAGS += -mtune=cortex-a8
+TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a8
 TARGET_OMAP3 := true
-COMMON_GLOBAL_CFLAGS += -DTARGET_OMAP3 -DOMAP_COMPAT -DBINDER_COMPAT
+COMMON_GLOBAL_CFLAGS += -DTARGET_OMAP3 -DOMAP_COMPAT -DMOTOROLA_UIDS -DBINDER_COMPAT
 ARCH_ARM_HAVE_TLS_REGISTER := false
 
 # Wifi related defines
@@ -103,11 +106,19 @@ BUILD_PV_VIDEO_ENCODERS := 1
 BOARD_USES_BOOTMENU := true
 BOARD_WITH_CPCAP    := true
 BOARD_MMC_DEVICE    := /dev/block/mmcblk1
+BOARD_BOOTMODE_CONFIG_FILE := /cache/recovery/bootmode.conf
+BOARD_BOOTMENU_REBOOT_HOOK := ../../../device/motorola-common/jordan/reboot_hook.c
+
 BOARD_SDCARD_DEVICE_PRIMARY   := /dev/block/mmcblk0p1
 BOARD_SDCARD_DEVICE_SECONDARY := /dev/block/mmcblk0
 BOARD_SDEXT_DEVICE  := /dev/block/mmcblk0p2
 BOARD_SYSTEM_DEVICE := /dev/block/mmcblk1p21
 BOARD_DATA_DEVICE   := /dev/block/mmcblk1p25
+
+# Init files
+TARGET_PROVIDES_INIT_RC := true
+TARGET_PROVIDES_UEVENTD_RC := true
+TARGET_PROVIDES_B2G_INIT_RC := true
 
 # Recovery
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
@@ -133,10 +144,10 @@ TARGET_RECOVERY_PRE_COMMAND_CLEAR_REASON := true
 # Egl Specific
 USE_OPENGL_RENDERER := true
 BOARD_EGL_CFG := device/motorola/jordan-common/egl.cfg
+BOARD_NO_ALLOW_DEQUEUE_CURRENT_BUFFER := true
 DEFAULT_FB_NUM := 0
 BOARD_USE_YUV422I_DEFAULT_COLORFORMAT := true
 BOARD_USES_OVERLAY := true
-BOARD_WITHOUT_HW_COMPOSER := true
 ENABLE_WEBGL := true
 # Camera
 USE_CAMERA_STUB := false
@@ -149,11 +160,56 @@ TARGET_PROXIMITY_SENSOR_LIMIT := 0x1F
 BOARD_USES_AUDIO_LEGACY := true
 TARGET_PROVIDES_LIBAUDIO := true
 BOARD_USE_KINETO_COMPATIBILITY := true
+TARGET_BOOTANIMATION_PRELOAD := true
+TARGET_BOOTANIMATION_TEXTURE_CACHE := true
 
 # If kernel sources are present in repo, here is the location
 #TARGET_KERNEL_SOURCE := $(ANDROID_BUILD_TOP)/kernel-omap
 #TARGET_KERNEL_CONFIG   := mapphone_mb525_defconfig
-TARGET_PREBUILT_KERNEL := $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/kernel
+#TARGET_PREBUILT_KERNEL := $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/kernel
 # Extra : external modules sources
 #TARGET_KERNEL_MODULES_EXT := $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/modules
 
+##### 2ndboot Kernel stuff #####
+MODULES_2NDBOOT_NAME := true
+TARGET_MODULES_WIFI_SOURCE := "system/wlan/ti/wilink_6_1/platforms/os/linux/"
+TARGET_MODULES_AP_SOURCE := "system/wlan/ti/WiLink_AP/platforms/os/linux/"
+
+API_MAKE := \
+	make PREFIX=$(ANDROID_BUILD_TOP)/$(TARGET_OUT_INTERMEDIATES)/kernel_intermediates/build \
+	ARCH=arm \
+	CROSS_COMPILE=$(ANDROID_BUILD_TOP)/prebuilt/$(HOST_PREBUILT_TAG)/toolchain/arm-eabi-4.4.3/bin/arm-eabi- \
+	HOST_PLATFORM=zoom2 \
+	KERNEL_DIR=$(ANDROID_BUILD_TOP)/$(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ \
+
+ext_modules:
+	$(API_MAKE) -C $(TARGET_KERNEL_MODULES_EXT) modules
+	find $(TARGET_KERNEL_MODULES_EXT)/ -name "*.ko" -exec mv {} \
+		$(KERNEL_MODULES_2NDBOOT_OUT)/ \; || true
+	$(API_MAKE) clean -C $(TARGET_MODULES_WIFI_SOURCE)
+	$(API_MAKE) clean -C $(TARGET_MODULES_AP_SOURCE)
+	$(API_MAKE) -C $(TARGET_MODULES_WIFI_SOURCE) HOST_PLATFORM=zoom2 KERNEL_DIR=$(KERNEL_OUT)
+	$(API_MAKE) -C $(TARGET_MODULES_AP_SOURCE) HOST_PLATFORM=zoom2 KERNEL_DIR=$(KERNEL_OUT)
+	mv $(TARGET_MODULES_WIFI_SOURCE)/tiwlan_drv.ko $(KERNEL_MODULES_2NDBOOT_OUT)/tiwlan_drv.ko
+	mv $(TARGET_MODULES_AP_SOURCE)/tiap_drv.ko $(KERNEL_MODULES_2NDBOOT_OUT)/tiap_drv.ko
+	$(ANDROID_BUILD_TOP)/device/motorola/jordan-common/modules-2ndboot.sh
+	arm-linux-androideabi-strip --strip-unneeded $(KERNEL_MODULES_OUT)/*.ko
+
+hboot:
+	mkdir -p $(PRODUCT_OUT)/system/bootmenu/2nd-boot
+	echo "$(BOARD_KERNEL_CMDLINE)" > $(PRODUCT_OUT)/system/bootmenu/2nd-boot/cmdline
+	echo "$(BOARD_KERNEL_CMDLINE_UART)" > $(PRODUCT_OUT)/system/bootmenu/2nd-boot/cmdline-uart
+	$(API_MAKE) -C $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/hboot
+	mv $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/hboot/hboot.bin $(PRODUCT_OUT)/system/bootmenu/2nd-boot/
+	make clean -C $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/hboot
+
+# If kernel sources are present in repo, here is the location
+TARGET_KERNEL_SOURCE := $(ANDROID_BUILD_TOP)/kernel/moto/jordan
+TARGET_KERNEL_CUSTOM_TOOLCHAIN := arm-eabi-4.4.3
+TARGET_KERNEL_CONFIG  := mapphone_defconfig
+BOARD_KERNEL_CMDLINE := console=/dev/null mem=498M init=/init ip=off brdrev=P3A vram=6M omapfb.vram=0:6M
+BOARD_KERNEL_CMDLINE_UART := console=ttyS2,115200 mem=498M init=/init ip=off brdrev=P3A vram=6M omapfb.vram=0:6M
+#TARGET_PREBUILT_KERNEL := $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/kernel
+# Extra : external modules sources
+TARGET_KERNEL_MODULES_EXT := $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/modules/sources
+TARGET_KERNEL_MODULES := ext_modules hboot

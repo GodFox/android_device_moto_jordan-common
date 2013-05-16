@@ -16,4 +16,3 @@
 ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),jordan)
 include $(all-subdir-makefiles)
 endif
-

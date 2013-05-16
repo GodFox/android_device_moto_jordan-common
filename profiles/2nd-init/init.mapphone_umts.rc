@@ -11,30 +11,36 @@ on init
 
     # note: we use 2nd-init, /system is already mounted
 
+    # Load kernel modules
+    insmod /system/lib/modules/symsearch.ko
+    insmod /system/lib/modules/klogger.ko
     #PVR Drivers
     exec /system/bootmenu/script/pvr.sh
 
-    # Load kernel modules
+    insmod /system/lib/modules/thumbee.ko
+
     insmod /system/lib/modules/netmux.ko
     insmod /system/lib/modules/netmux_linkdriver.ko
     insmod /system/lib/modules/modem_pm_driver.ko
 
+    insmod /system/lib/modules/iptable_raw.ko
+#   insmod /system/lib/modules/iptable_mangle.ko
+
     insmod /system/lib/modules/ip6_tables.ko
     insmod /system/lib/modules/ip6table_filter.ko
-    #insmod /system/lib/modules/ip6table_mangle.ko
+    insmod /system/lib/modules/ip6table_raw.ko
+#   insmod /system/lib/modules/ip6table_mangle.ko
     insmod /system/lib/modules/ip6t_REJECT.ko
     insmod /system/lib/modules/ip6t_LOG.ko
 
     insmod /system/lib/modules/xt_tcpmss.ko
     insmod /system/lib/modules/xt_TCPMSS.ko
-    #insmod /system/lib/modules/iptable_mangle.ko
     insmod /system/lib/modules/xt_multiport.ko
     insmod /system/lib/modules/xt_quota2.ko
     insmod /system/lib/modules/xt_owner2.ko
 
     insmod /system/lib/modules/tun.ko
 
-    insmod /system/lib/modules/symsearch.ko
     insmod /system/lib/modules/mmcfix.ko
     insmod /system/lib/modules/usbled.ko
     insmod /system/lib/modules/clockfix.ko
@@ -112,6 +118,9 @@ on post-fs
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chmod 0660 /sys/class/rfkill/rfkill0/state
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/type
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
+    chmod 0660 /sys/class/rfkill/rfkill1/state
 # Tweaks
     write /sys/block/mmcblk0/bdi/read_ahead_kb 512
 
@@ -170,6 +179,22 @@ on post-fs-data
     chown system nobody /data/local/hwui.deny
     chmod 0775 /data/local/hwui.deny
 
+    # create the necessary dirs for tpapi with proper permission
+    mkdir /data/tpapi
+    mkdir /data/tpapi/etc
+    mkdir /data/tpapi/etc/tpa
+    mkdir /data/tpapi/etc/tpa/persistent
+    chmod 0770 /pds/security
+    chmod 0770 /data/tpapi
+    chmod 0770 /data/tpapi/etc
+    chmod 0770 /data/tpapi/etc/tpa
+    chmod 0770 /data/tpapi/etc/tpa/persistent
+    chown system system /pds/security
+    chown system system /data/tpapi
+    chown system system /data/tpapi/etc
+    chown system system /data/tpapi/etc/tpa
+    chown system system /data/tpapi/etc/tpa/persistent
+
     setprop vold.post_fs_data_done 1
 
 on charger
@@ -223,6 +248,9 @@ on property:sys.chargeonly.mode=1
     log "on property sys.chargeonly.mode=1 starting charger"
     class_reset main
     class_reset late_start
+    write /data/simpin lock
+    chmod 0660 /data/simpin
+    chown system system /data/simpin
     class_start charger
 
 on property:init.svc.wpa_supplicant=stopped
@@ -280,7 +308,7 @@ service gkisystem /system/bin/gkisystem
     socket gpshal_socket stream 660 radio system
     socket opprofdaemon stream 660 radio system
     group radio system
-    oneshot
+    onrestart exec /system/bin/gki_pd_notifier
 service battd /system/bin/battd
     class main
     socket battdsock stream 660 root system
@@ -298,6 +326,17 @@ service hciattach /system/bin/hciattach -n -t 10 /dev/ttyS1 texasalt 3000000 flo
     user bluetooth
     group bluetooth net_bt_admin
     disabled
+
+service panic_daemon /system/bin/panic_daemon
+    user radio
+    group radio system graphics sdcard_rw
+    socket panic_daemon stream 660 radio radio
+    onrestart exec /system/bin/handle_bp_panic.sh
+
+service secclkd /system/bin/secclkd
+    user system
+    group system radio
+    oneshot
 
 # Ecompass daemon
 service akmd2 /system/bin/akmd2
@@ -353,7 +392,7 @@ service pvrsrvinit /system/bin/pvrsrvinit
     group root
     oneshot
 
-service baseimage /system/bin/dspexec -T /system/lib/dsp/baseimage.dof
+service baseimage /system/bin/dspexec -v -T /system/lib/dsp/baseimage.dof
     class main
     user media
     group media graphics

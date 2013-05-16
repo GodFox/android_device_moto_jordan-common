@@ -321,13 +321,12 @@ out:
     return ret;
 }
 
-int bt_hw_en() {
+int bt_enable() {
     LOGV(__FUNCTION__);
 
     int ret = -1;
     int hci_sock = -1;
     int attempt;
-    int refcount = dec_atomic();
 
     if (bt_is_enabled() == 1) {
         LOGI("bt has been enabled already. inc reference count only");
@@ -337,6 +336,15 @@ int bt_hw_en() {
 
     if (set_bluetooth_power(1) < 0) {
         goto out;
+    }
+
+
+    char prop[PROPERTY_VALUE_MAX];
+    property_set("persist.sys.fm_disabled","0");
+    property_get("init.svc.fmradio",prop,"");
+    if (!strcmp(prop, "running")) {
+        property_set("persist.sys.fm_disabled","1");
+        LOGE("FM Radio workaround");
     }
 
     LOGI("Starting hciattach daemon");
@@ -357,12 +365,19 @@ int bt_hw_en() {
         }
         usleep(10000);  // 10 ms retry delay
     }
-
     if (attempt == 0) {
         LOGE("%s: Timeout waiting for HCI device to come up", __FUNCTION__);
         set_bluetooth_power(0);
         goto out;
-    } 
+    }
+
+    LOGI("Starting bluetoothd deamon");
+    if (property_set("ctl.start", "bluetoothd") < 0) {
+        LOGE("Failed to start bluetoothd");
+        set_bluetooth_power(0);
+        goto out;
+    }
+    sleep(HCID_START_DELAY_SEC);
 
     ret = 0;
 
@@ -377,7 +392,7 @@ out:
     return ret;
 }
 
-int bt_hw_dis()  {
+int bt_disable() {
     LOGV(__FUNCTION__);
 
     int ret = -1;
@@ -391,11 +406,15 @@ int bt_hw_dis()  {
         return 0;
     }
 
+    LOGI("Stopping bluetoothd deamon");
+    if (property_set("ctl.stop", "bluetoothd") < 0) {
+        LOGE("Error stopping bluetoothd");
+        goto out;
+    }
     usleep(HCID_STOP_DELAY_USEC);
+
     hci_sock = create_hci_sock();
-
     if (hci_sock < 0) goto out;
-
     ioctl(hci_sock, HCIDEVDOWN, HCI_DEV_ID);
 
     LOGI("Stopping hciattach deamon");
@@ -414,37 +433,6 @@ out:
     return ret;
 }
 
-int bt_enable() {
-    LOGV(__FUNCTION__);
-    int ret = bt_hw_en();
-
-    if (ret < 0) {
-        return ret;
-    }
-
-    LOGI("Starting bluetoothd deamon");
-    if (property_set("ctl.start", "bluetoothd") < 0) {
-        LOGE("Failed to start bluetoothd");
-        bt_hw_dis();
-        return -1;
-    }
-
-    sleep(HCID_START_DELAY_SEC);
-    return 0;
-}
-
-int bt_disable() {
-    LOGV(__FUNCTION__);
-
-    LOGI("Stopping bluetoothd deamon");
-    if (property_set("ctl.stop", "bluetoothd") < 0) {
-        LOGE("Error stopping bluetoothd");
-    }
-    usleep(HCID_STOP_DELAY_USEC);
-
-    return bt_hw_dis();
-}
-
 int bt_is_enabled() {
     LOGV(__FUNCTION__);
 
@@ -452,34 +440,32 @@ int bt_is_enabled() {
     int ret = -1;
     struct hci_dev_info dev_info;
 
+    char prop[PROPERTY_VALUE_MAX];
+    property_get("persist.sys.fm_disabled",prop,"");
+    if (!strcmp(prop, "1")) {
+        usleep(HCID_STOP_DELAY_USEC);
+        hci_sock = create_hci_sock();
+        ioctl(hci_sock, HCIDEVDOWN, HCI_DEV_ID);
+        LOGE("FM Radio turned off");
+    }
+
     // Check power first
     ret = check_bluetooth_power();
-   // LOGE("%s: check_bluetooth_power %d",__func__,ret);
     if (ret == -1 || ret == 0) goto out;
 
     ret = -1;
 
     // Power is on, now check if the HCI interface is up
     hci_sock = create_hci_sock();
-   // LOGE("%s: create_hci_sock %d",__func__,hci_sock);
     if (hci_sock < 0) goto out;
 
     dev_info.dev_id = HCI_DEV_ID;
-    ret = ioctl(hci_sock, HCIGETDEVINFO, (void *)&dev_info);
-   // LOGE("%s: ioctl(hci_sock, HCIGETDEVINFO, (void *)&dev_info) %d",__func__,ret);
-    if (ret < 0) {
+    if (ioctl(hci_sock, HCIGETDEVINFO, (void *)&dev_info) < 0) {
         ret = 0;
         goto out;
     }
 
-    if (dev_info.flags & (1 << (HCI_UP & 31))) {
-        ret = 1;
-    } else {
-        ret = 0;
-    }
-
 out:
-   // LOGE("%s: Return ret: %d",__func__,ret);
     if (hci_sock >= 0) close(hci_sock);
     return ret;
 }

@@ -7,8 +7,13 @@ if [ -f /system/firstboot ]; then
     busybox mount -o remount,rw /system
     rm -f /system/firstboot
 
-    # Clean market cache
-    rm -f /data/data/com.android.providers.downloads/cache/*
+    # Clean old apps
+    rm -rf /data/local/webapps
+    rm -rf /data/nativebenchmark
+    
+    # Copy files to data partion
+    cp -rf /systen/data/local/webapps /data/local/
+    cp -rf /system/data/nativebenchmark /data/
 
     #DISABLED:
     exit 0
@@ -25,6 +30,13 @@ if [ -f /system/firstboot ]; then
         chmod 666 /tmp/usbd_current_state
 
     fi
+else
+    if [ ! -d /data/local/webapps ]; then
+	cp -rf /systen/data/local/webapps /data/local/
+    fi
 
+    if [ ! -d /data/nativebenchmark ]; then
+	cp -rf /system/data/nativebenchmark /data/
+    fi
 fi
 

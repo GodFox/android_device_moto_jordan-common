@@ -136,6 +136,13 @@ JordanCameraWrapper::JordanCameraWrapper(sp<CameraHardwareInterface>& motoInterf
 {
     if (type == CAM_SOC) {
         mTorchThread = new TorchEnableThread(this);
+
+        /* The camera lib initializes focus-mode with the value 'on', which is not in its
+         * own focus-mode-values list :-(
+         */
+        CameraParameters params = motoInterface->getParameters();
+        params.set(CameraParameters::KEY_FOCUS_MODE, CameraParameters::FOCUS_MODE_AUTO);
+        motoInterface->setParameters(params);
     }
 }
 
@@ -383,10 +390,9 @@ JordanCameraWrapper::setParameters(const CameraParameters& params)
     bool isWide;
 
     /*
-     * getInt returns -1 if the value isn't present and 0 on parse failure,
-     * so if it's larger than 0, we can be sure the value was parsed properly
+     * getInt returns -1 if the value isn't present and 0 on parse failure
      */
-    mVideoMode = pars.getInt("cam-mode") > 0;
+    mVideoMode = pars.getInt("cam-mode") == 1;
     pars.remove("cam-mode");
 
     pars.getPreviewSize(&width, &height);
@@ -465,10 +471,11 @@ JordanCameraWrapper::getParameters() const
     ret.set(CameraParameters::KEY_MAX_EXPOSURE_COMPENSATION, "9");
     ret.set(CameraParameters::KEY_MIN_EXPOSURE_COMPENSATION, "-9");
     ret.set(CameraParameters::KEY_EXPOSURE_COMPENSATION_STEP, "0.3333333333333");
+
     ret.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV422I);
-    ret.set(CameraParameters::KEY_PREVIEW_FRAME_RATE, "24");
-    ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, "1000,24000");
-    ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000,24000");
+    ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
+            "(10000,30000),(10000,25000),(10000,20000),(10000,24000),(10000,15000),(10000,10000)");
+    ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "10000, 30000");
 
     ret.set("cam-mode", mVideoMode ? "1" : "0");
 
