@@ -12,31 +12,28 @@ if [ -f /system/firstboot ]; then
     rm -rf /data/nativebenchmark
     
     # Copy files to data partion
-    cp -rf /systen/data/local/webapps /data/local/
-    cp -rf /system/data/nativebenchmark /data/
-
-    #DISABLED:
-    exit 0
-
-    LOAD_ADBD=`getprop persist.service.adb.enable`
+    cp -Rf /system/data/* /data/                
+    sync                                          
+                                                     
+    #DISABLED:                                       
+    exit 0                                           
+                                                     
+    LOAD_ADBD=`getprop persist.service.adb.enable`   
     USB_LINK=`cat /sys/class/power_supply/usb/online`
-
-    if [ "$LOAD_ADBD $USB_LINK" = "1 1" ]; then
-
-        echo charge_adb > /dev/usb_device_mode
-
-        # set initial state for usb.apk
+                                                     
+    if [ "$LOAD_ADBD $USB_LINK" = "1 1" ]; then           
+                                                          
+        echo charge_adb > /dev/usb_device_mode            
+                                                          
+        # set initial state for usb.apk                   
         echo usb_mode_charge_adb > /tmp/usbd_current_state
-        chmod 666 /tmp/usbd_current_state
-
-    fi
-else
-    if [ ! -d /data/local/webapps ]; then
-	cp -rf /systen/data/local/webapps /data/local/
-    fi
-
-    if [ ! -d /data/nativebenchmark ]; then
-	cp -rf /system/data/nativebenchmark /data/
-    fi
+        chmod 666 /tmp/usbd_current_state                 
+                                                          
+    fi                                                                      
+else                                                                        
+    if [ ! -d /data/local/webapps ] || [ ! -d /data/nativebenchmark ] ; then
+        cp -Rf /system/data/* /data/                                        
+    fi                                                                      
+    sync
 fi
 
