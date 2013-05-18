@@ -43,22 +43,22 @@ SensorAK8973::SensorAK8973() : SensorBase(AK8973_DEVICE_NAME, "compass"),
     memset(mPendingEvents, 0, sizeof(mPendingEvents));
 
     mPendingEvents[Accelerometer].version = sizeof(sensors_event_t);
-    mPendingEvents[Accelerometer].sensor = SENSOR_TYPE_ACCELEROMETER;
+    mPendingEvents[Accelerometer].sensor = 0;
     mPendingEvents[Accelerometer].type = SENSOR_TYPE_ACCELEROMETER;
     mPendingEvents[Accelerometer].acceleration.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[MagneticField].version = sizeof(sensors_event_t);
-    mPendingEvents[MagneticField].sensor = SENSOR_TYPE_MAGNETIC_FIELD;
+    mPendingEvents[MagneticField].sensor = 2;
     mPendingEvents[MagneticField].type = SENSOR_TYPE_MAGNETIC_FIELD;
     mPendingEvents[MagneticField].magnetic.status = SENSOR_STATUS_ACCURACY_MEDIUM;
 
     mPendingEvents[Orientation].version = sizeof(sensors_event_t);
-    mPendingEvents[Orientation].sensor = SENSOR_TYPE_ORIENTATION;
+    mPendingEvents[Orientation].sensor = 1;
     mPendingEvents[Orientation].type = SENSOR_TYPE_ORIENTATION;
     mPendingEvents[Orientation].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[Temperature].version = sizeof(sensors_event_t);
-    mPendingEvents[Temperature].sensor = SENSOR_TYPE_AMBIENT_TEMPERATURE;
+    mPendingEvents[Temperature].sensor = 3;
     mPendingEvents[Temperature].type = SENSOR_TYPE_AMBIENT_TEMPERATURE;
 
     for (int i = 0 ; i < numSensors; i++) {

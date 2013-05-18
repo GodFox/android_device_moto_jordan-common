@@ -52,7 +52,7 @@ SensorISL29030P526::SensorISL29030P526()
     memset(&mPendingEvent, 0, sizeof(mPendingEvent));
 
     mPendingEvent.version = sizeof(sensors_event_t);
-    mPendingEvent.sensor = SENSOR_TYPE_PROXIMITY;
+    mPendingEvent.sensor = 5;
     mPendingEvent.type = SENSOR_TYPE_PROXIMITY;
 
     openDevice();
@@ -172,7 +172,7 @@ SensorISL29030L526::SensorISL29030L526()
     memset(&mPendingEvent, 0, sizeof(mPendingEvent));
 
     mPendingEvent.version = sizeof(sensors_event_t);
-    mPendingEvent.sensor = SENSOR_TYPE_LIGHT;
+    mPendingEvent.sensor = 4;
     mPendingEvent.type = SENSOR_TYPE_LIGHT;
 
     openDevice();

@@ -37,7 +37,7 @@ SensorKXTF9::SensorKXTF9() : SensorBase(KXTF9_DEVICE_NAME, "accelerometer"),
     mInputReader(32)
 {
     mPendingEvent.version = sizeof(sensors_event_t);
-    mPendingEvent.sensor = SENSOR_TYPE_ACCELEROMETER;
+    mPendingEvent.sensor = 0;
     mPendingEvent.type = SENSOR_TYPE_ACCELEROMETER;
     mPendingEvent.acceleration.status = SENSOR_STATUS_ACCURACY_HIGH;
 
