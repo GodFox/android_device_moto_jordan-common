@@ -2,7 +2,7 @@
 #
 # load adbd during first boot if property is set
 
-if [ -f /system/firstboot ]; then
+if [ ! -f /data/firstboot.done ]; then
 
     busybox mount -o remount,rw /system
     rm -f /system/firstboot
@@ -14,7 +14,10 @@ if [ -f /system/firstboot ]; then
     # Copy files to data partion
     cp -Rf /system/data/* /data/                
     sync                                          
-                                                     
+    
+    # mark setup as done
+    touch /data/firstboot.done
+    
     #DISABLED:                                       
     exit 0                                           
                                                      
