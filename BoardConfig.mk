@@ -170,7 +170,13 @@ TARGET_BOOTANIMATION_TEXTURE_CACHE := true
 # Extra : external modules sources
 #TARGET_KERNEL_MODULES_EXT := $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/modules
 
+
 ##### 2ndboot Kernel stuff #####
+
+BUILD_2NDBOOT_KERNEL := false
+
+ifeq ($(BUILD_2NDBOOT_KERNEL),true)
+
 MODULES_2NDBOOT_NAME := true
 TARGET_MODULES_WIFI_SOURCE := "system/wlan/ti/wilink_6_1/platforms/os/linux/"
 TARGET_MODULES_AP_SOURCE := "system/wlan/ti/WiLink_AP/platforms/os/linux/"
@@ -213,3 +219,17 @@ BOARD_KERNEL_CMDLINE_UART := console=ttyS2,115200 mem=498M init=/init ip=off brd
 # Extra : external modules sources
 TARGET_KERNEL_MODULES_EXT := $(ANDROID_BUILD_TOP)/device/motorola/jordan-common/modules/sources
 TARGET_KERNEL_MODULES := ext_modules hboot
+
+else
+
+# copy all 2ndboot kernel modules under the "modules-2ndboot" directory to system/lib/modules
+
+PRODUCT_COPY_FILES += $(shell test -d device/motorola/jordan-common/modules-2ndboot && \
+	find device/motorola/jordan-common/modules-2ndboot -name '*.ko' \
+	-printf '%p:system/lib/modules/%f ')
+
+PRODUCT_COPY_FILES += \
+	device/motorola/jordan-common/profiles/2nd-boot/cmdline:system/bootmenu/2nd-boot/cmdline \
+	device/motorola/jordan-common/profiles/2nd-boot/cmdline-uart:system/bootmenu/2nd-boot/cmdline-uart \
+	device/motorola/jordan-common/profiles/2nd-boot/hboot.bin:system/bootmenu/2nd-boot/hboot.bin
+endif

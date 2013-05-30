@@ -126,9 +126,9 @@ PRODUCT_COPY_FILES += $(shell test -d device/motorola/jordan-common/modules && \
 	-printf '%p:system/lib/modules/%f ')
 
 # Prebuilt boot.img
-LOCAL_KERNEL := device/motorola/jordan-common/kernel
-PRODUCT_COPY_FILES += \
-	$(LOCAL_KERNEL):kernel
+#LOCAL_KERNEL := device/motorola/jordan-common/kernel
+#PRODUCT_COPY_FILES += \
+#	$(LOCAL_KERNEL):kernel
 
 # Blobs and bootmenu stuff
 $(call inherit-product, device/motorola/jordan-common/jordan-blobs.mk)
