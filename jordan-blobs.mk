@@ -19,6 +19,7 @@ DEVICE_PREBUILT := ${device_path}/prebuilt
 PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/etc/terminfo/l/linux:system/etc/terminfo/l/linux \
 	$(DEVICE_PREBUILT)/etc/terminfo/x/xterm:system/etc/terminfo/x/xterm \
+	$(DEVICE_PREBUILT)/bootanimation.zip:system/media/bootanimation.zip \
 
 # Key layouts, names must fit the ones in /proc/bus/input/devices, qwerty.kl is the fallback one.
 PRODUCT_COPY_FILES += \

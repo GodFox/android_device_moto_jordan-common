@@ -173,7 +173,7 @@ TARGET_BOOTANIMATION_TEXTURE_CACHE := true
 
 ##### 2ndboot Kernel stuff #####
 
-BUILD_2NDBOOT_KERNEL := false
+BUILD_2NDBOOT_KERNEL := true
 
 ifeq ($(BUILD_2NDBOOT_KERNEL),true)
 
